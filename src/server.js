@@ -5,6 +5,8 @@ const path = require('path')
 
 const pdf = require('html-pdf')
 
+const puppeteer = require('puppeteer')
+
 const passengers = [
   {
     name: "Joyce",
@@ -26,6 +28,33 @@ const passengers = [
 app.set('view engine', 'ejs')
 
 app.set('views', path.join(__dirname, ''))
+
+app.get('/pdf', async (req, res) => {
+  const browser = await puppeteer.launch()
+
+  const page = await browser.newPage()
+
+  await page.goto('http://localhost:3333', {
+    waitUntil: 'networkidle0' 
+  })
+
+  const pdf = await page.pdf({
+    printBackground: true,
+    format: 'letter',
+    margin: {
+      top: "20px",
+      bottom: "40px",
+      left: "20px",
+      right: "20px"
+    }
+  })
+
+  await browser.close()
+
+  res.contentType('application/pdf')
+
+  return res.send(pdf)
+})
 
 app.get('/', (req, res) => {
   return res.render("print", { passengers }, (err, html) => {
